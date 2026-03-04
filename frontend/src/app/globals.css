@@ -1,0 +1,286 @@
+@import "tailwindcss";
+
+@theme {
+  /* ─── Paleta Eryó ─────────────────────────────── */
+  --color-eryo-deepest: #0B0205;
+  --color-eryo-dark: #2C1B47;
+  --color-eryo-mid: #724C9D;
+  --color-eryo-light: #DCCAE9;
+  --color-eryo-accent: #9356A0;
+
+  /* ─── Tipografía ──────────────────────────────── */
+  --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+
+  /* ─── Radios ──────────────────────────────────── */
+  --radius-card: 12px;
+  --radius-btn: 8px;
+
+  /* ─── Sombras ─────────────────────────────────── */
+  --shadow-glow: 0 0 24px rgba(147, 86, 160, 0.25);
+  --shadow-card: 0 4px 24px rgba(11, 2, 5, 0.4);
+}
+
+@layer base {
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #0B0205;
+    color: #DCCAE9;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0B0205;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2C1B47;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #724C9D;
+  }
+
+  /* Focus visible */
+  :focus-visible {
+    outline: 2px solid #9356A0;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Selección de texto */
+  ::selection {
+    background-color: rgba(147, 86, 160, 0.35);
+    color: #DCCAE9;
+  }
+}
+
+@layer components {
+
+  /* ─── Tarjeta base ────────────────────────────── */
+  .card {
+    background: linear-gradient(135deg, #2C1B47 0%, #1a1030 100%);
+    border: 1px solid rgba(114, 76, 157, 0.25);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card:hover {
+    border-color: rgba(147, 86, 160, 0.5);
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* ─── Botones ─────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius-btn);
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #9356A0 0%, #724C9D 100%);
+    color: #DCCAE9;
+    box-shadow: 0 2px 12px rgba(147, 86, 160, 0.3);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #a666b0 0%, #8860ad 100%);
+    box-shadow: 0 4px 20px rgba(147, 86, 160, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: #DCCAE9;
+    border: 1px solid rgba(114, 76, 157, 0.5);
+  }
+
+  .btn-secondary:hover {
+    border-color: #9356A0;
+    background: rgba(147, 86, 160, 0.1);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: #DCCAE9;
+    padding: 8px;
+  }
+
+  .btn-ghost:hover {
+    background: rgba(220, 202, 233, 0.08);
+  }
+
+  .btn-danger {
+    background: transparent;
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.3);
+  }
+
+  .btn-danger:hover {
+    background: rgba(248, 113, 113, 0.1);
+    border-color: #f87171;
+  }
+
+  .btn-sm {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+  }
+
+  .btn-lg {
+    padding: 14px 28px;
+    font-size: 1rem;
+  }
+
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* ─── Inputs ──────────────────────────────────── */
+  .input {
+    width: 100%;
+    background: rgba(11, 2, 5, 0.6);
+    border: 1px solid rgba(114, 76, 157, 0.35);
+    border-radius: var(--radius-btn);
+    color: #DCCAE9;
+    padding: 10px 14px;
+    font-size: 0.875rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .input::placeholder {
+    color: rgba(220, 202, 233, 0.35);
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: #9356A0;
+    box-shadow: 0 0 0 3px rgba(147, 86, 160, 0.15);
+  }
+
+  .input-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: rgba(220, 202, 233, 0.7);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ─── Badge / Chip de estado ─────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-pending {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+  }
+
+  .badge-active {
+    background: rgba(52, 211, 153, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(52, 211, 153, 0.3);
+  }
+
+  .badge-done {
+    background: rgba(147, 86, 160, 0.2);
+    color: #DCCAE9;
+    border: 1px solid rgba(147, 86, 160, 0.4);
+  }
+
+  .badge-cancelled {
+    background: rgba(248, 113, 113, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.3);
+  }
+
+  /* ─── Separador ───────────────────────────────── */
+  .divider {
+    border: none;
+    border-top: 1px solid rgba(114, 76, 157, 0.2);
+    margin: 24px 0;
+  }
+
+  /* ─── Skeleton loader ────────────────────────── */
+  .skeleton {
+    background: linear-gradient(90deg, #2C1B47 25%, #3d2660 50%, #2C1B47 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* ─── Page wrapper ───────────────────────────── */
+  .page-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ─── Section heading ────────────────────────── */
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #DCCAE9;
+    letter-spacing: -0.02em;
+  }
+
+  .section-subtitle {
+    font-size: 0.9rem;
+    color: rgba(220, 202, 233, 0.55);
+    margin-top: 4px;
+  }
+}
