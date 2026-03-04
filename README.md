@@ -1,7 +1,5 @@
 # Eryó — Bisutería Artesanal
 
-![Eryó Banner](./logo.png)
-
 Eryó es una plataforma de comercio electrónico diseñada para una tienda de bisutería artesanal en Barranquilla, Colombia. La aplicación permite a los usuarios navegar por un catálogo de manillas, anillos, collares y aretes, agregar productos a un carrito, realizar pedidos de pago contraentrega y solicitar cotizaciones para piezas de joyería personalizadas creadas a partir de hilos, tejidos y dijes específicos.
 
 Este monorepositorio incluye tanto el **Frontend** (Next.js 15) como el **Backend** (FastAPI).
