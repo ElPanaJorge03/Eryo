@@ -2,7 +2,8 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import Link from "next/link";
+import { Eye, EyeOff, LogIn, ArrowLeft } from "lucide-react";
 import { EryoLogo } from "@/components/EryoLogo";
 import { setToken } from "@/lib/auth";
 import api from "@/lib/api";
@@ -36,12 +37,21 @@ export default function AdminLoginPage() {
 
     return (
         <div
-            className="min-h-screen flex flex-col items-center justify-center px-4"
+            className="min-h-screen flex flex-col items-center justify-center px-4 relative"
             style={{
                 background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(147,86,160,0.15) 0%, transparent 70%)",
             }}
         >
-            <div className="w-full max-w-sm">
+            <Link
+                href="/"
+                className="absolute top-6 left-6 flex items-center gap-2 text-sm hover:text-[#DCCAE9] transition-colors"
+                style={{ color: "rgba(220,202,233,0.6)" }}
+            >
+                <ArrowLeft size={16} />
+                Volver a la tienda
+            </Link>
+
+            <div className="w-full max-w-sm mt-8">
                 {/* Logo */}
                 <div className="flex justify-center mb-8">
                     <EryoLogo height={110} />

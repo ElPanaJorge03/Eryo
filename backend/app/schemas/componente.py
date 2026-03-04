@@ -6,6 +6,7 @@ class ComponenteCreate(BaseModel):
     tipo: str  # "tipo_pieza", "tejido", "color", "digen"
     nombre: str
     disponible: bool = True
+    imagen_url: str | None = None
 
 
 class ComponenteUpdate(BaseModel):
@@ -13,6 +14,7 @@ class ComponenteUpdate(BaseModel):
     tipo: str | None = None
     nombre: str | None = None
     disponible: bool | None = None
+    imagen_url: str | None = None
 
 
 class ComponenteResponse(BaseModel):
@@ -20,5 +22,6 @@ class ComponenteResponse(BaseModel):
     tipo: str
     nombre: str
     disponible: bool
+    imagen_url: str | None = None
 
     model_config = {"from_attributes": True}

@@ -10,14 +10,39 @@ import type {
 } from "@/lib/types";
 
 // ─────────────────────────────────────────────
-// Categorías
+// Categorías — admin & público
 // ─────────────────────────────────────────────
 
 export function useCategorias() {
     return useQuery<Categoria[]>({
         queryKey: ["categorias"],
         queryFn: () => api.get("/api/categorias/").then((r) => r.data),
-        staleTime: 5 * 60_000, // 5 min — raro que cambien
+        staleTime: 5 * 60_000, // 5 min
+    });
+}
+
+export function useCrearCategoria() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Omit<Categoria, "id">) => api.post("/api/categorias/", data).then((r) => r.data),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ["categorias"] }),
+    });
+}
+
+export function useActualizarCategoria() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, ...data }: Partial<Categoria> & { id: number }) =>
+            api.put(`/api/categorias/${id}`, data).then((r) => r.data),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ["categorias"] }),
+    });
+}
+
+export function useEliminarCategoria() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (id: number) => api.delete(`/api/categorias/${id}`),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ["categorias"] }),
     });
 }
 
@@ -59,7 +84,49 @@ export function useComponentes(tipo?: string) {
     return useQuery<Componente[]>({
         queryKey: ["componentes", tipo],
         queryFn: () =>
-            api.get("/api/componentes/", { params: tipo ? { tipo } : {} }).then((r) => r.data),
+            api.get("/api/componentes/", { params: { ...(tipo ? { tipo } : {}), solo_disponibles: true } }).then((r) => r.data),
+    });
+}
+
+export function useAdminComponentes() {
+    return useQuery<Componente[]>({
+        queryKey: ["admin-componentes"],
+        queryFn: () =>
+            api.get("/api/componentes/", { params: { solo_disponibles: false } }).then((r) => r.data),
+    });
+}
+
+export function useCrearComponente() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Omit<Componente, "id">) => api.post("/api/componentes/", data).then((r) => r.data),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["componentes"] });
+            qc.invalidateQueries({ queryKey: ["admin-componentes"] });
+        },
+    });
+}
+
+export function useActualizarComponente() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, ...data }: Partial<Componente> & { id: number }) =>
+            api.put(`/api/componentes/${id}`, data).then((r) => r.data),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["componentes"] });
+            qc.invalidateQueries({ queryKey: ["admin-componentes"] });
+        },
+    });
+}
+
+export function useEliminarComponente() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (id: number) => api.delete(`/api/componentes/${id}`),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["componentes"] });
+            qc.invalidateQueries({ queryKey: ["admin-componentes"] });
+        },
     });
 }
 
@@ -114,9 +181,62 @@ export function usePedidosEstandar() {
     });
 }
 
+export function useActualizarEstadoEstandar() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, estado }: { id: number; estado: string }) =>
+            api.patch(`/api/pedidos/estandar/${id}/estado`, { estado }).then((r) => r.data as PedidoEstandar),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["pedidos-estandar"] });
+        },
+    });
+}
+
 export function usePedidosPersonalizados() {
     return useQuery<PedidoPersonalizado[]>({
         queryKey: ["pedidos-personalizados"],
         queryFn: () => api.get("/api/pedidos/personalizado").then((r) => r.data),
+    });
+}
+
+export function useActualizarEstadoPersonalizado() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, estado }: { id: number; estado: string }) =>
+            api.patch(`/api/pedidos/personalizado/${id}/estado`, { estado }).then((r) => r.data as PedidoPersonalizado),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["pedidos-personalizados"] });
+        },
+    });
+}
+
+export function useDefinirPrecioPersonalizado() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, precio }: { id: number; precio: number }) =>
+            api.patch(`/api/pedidos/personalizado/${id}/precio`, { precio }).then((r) => r.data as PedidoPersonalizado),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["pedidos-personalizados"] });
+        },
+    });
+}
+
+export function useEliminarPedidoEstandar() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (id: number) => api.delete(`/api/pedidos/estandar/${id}`),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["pedidos-estandar"] });
+        },
+    });
+}
+
+export function useEliminarPedidoPersonalizado() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (id: number) => api.delete(`/api/pedidos/personalizado/${id}`),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["pedidos-personalizados"] });
+        },
     });
 }

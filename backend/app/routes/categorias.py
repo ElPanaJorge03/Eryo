@@ -79,9 +79,18 @@ def eliminar_categoria(
     admin: Admin = Depends(get_current_admin),
 ):
     """Elimina una categoría. Solo admin."""
+    from sqlalchemy.exc import IntegrityError
+
     categoria = db.query(Categoria).filter(Categoria.id == categoria_id).first()
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
 
-    db.delete(categoria)
-    db.commit()
+    try:
+        db.delete(categoria)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400, 
+            detail="No se puede eliminar esta categoría porque todavía tiene productos asociados. Edita los productos y cámbialos de categoría primero."
+        )

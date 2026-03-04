@@ -121,13 +121,20 @@ export default function HomePage() {
 
       {/* ── Footer ─────────────────────────────── */}
       <footer
-        className="py-8 text-center text-xs"
+        className="py-8 flex flex-col items-center justify-center gap-4 text-xs"
         style={{
           borderTop: "1px solid rgba(114,76,157,0.15)",
           color: "rgba(220,202,233,0.35)",
         }}
       >
-        &copy; {new Date().getFullYear()} Eryó — Bisutería Artesanal. Barranquilla, Colombia.
+        <p>&copy; {new Date().getFullYear()} Eryó — Bisutería Artesanal. Barranquilla, Colombia.</p>
+        <Link
+          href="/admin/login"
+          aria-label="Acceso administrador"
+          className="hover:text-[#DCCAE9] transition-colors p-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+        </Link>
       </footer>
     </div >
   );

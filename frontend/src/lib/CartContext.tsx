@@ -13,7 +13,7 @@ export interface CartItem {
 
 interface CartContextProps {
     cart: CartItem[];
-    addToCart: (producto: CartItem) => void;
+    addToCart: (producto: CartItem, configCantidad?: number) => void;
     updateQuantity: (id: number, delta: number) => void;
     removeItem: (id: number) => void;
     clearCart: () => void;
@@ -45,17 +45,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
     }, [cart, mounted]);
 
-    const addToCart = (producto: CartItem) => {
+    const addToCart = (producto: CartItem, configCantidad: number = 1) => {
         setCart((prev) => {
             const index = prev.findIndex((item) => item.id === producto.id);
             if (index !== -1) {
                 const newCart = [...prev];
-                newCart[index].cantidad += 1;
+                newCart[index].cantidad += configCantidad;
                 return newCart;
             }
-            return [...prev, producto];
+            return [...prev, { ...producto, cantidad: configCantidad }];
         });
-        toast.success(`${producto.nombre} agregado al carrito`);
+        toast.success(`${configCantidad > 1 ? `${configCantidad}x ` : ""}${producto.nombre} agregado al carrito`);
     };
 
     const updateQuantity = (id: number, delta: number) => {

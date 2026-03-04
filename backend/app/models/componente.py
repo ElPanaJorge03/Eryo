@@ -21,6 +21,7 @@ class Componente(Base):
     tipo = Column(String(50), nullable=False)  # tipo_pieza, tejido, color, digen
     nombre = Column(String(100), nullable=False)
     disponible = Column(Boolean, default=True)
+    imagen_url = Column(String(500), nullable=True)
 
     def __repr__(self):
         return f"<Componente {self.tipo}: {self.nombre}>"

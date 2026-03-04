@@ -11,14 +11,14 @@ import { ShoppingBag } from "lucide-react";
 import { useProducto } from "@/lib/hooks";
 import { EryoLogo } from "@/components/EryoLogo";
 import { formatPrice } from "@/lib/utils";
-import type { ProductoResumen } from "@/lib/types";
-import toast from "react-hot-toast";
+import { useCart } from "@/lib/CartContext";
 
 export default function DetalleProductoPage() {
     const { id } = useParams<{ id: string }>();
     const productoId = Number(id);
 
     const { data: producto, isLoading, isError } = useProducto(productoId);
+    const { addToCart } = useCart();
     const [fotoIdx, setFotoIdx] = useState(0);
     const [cantidad, setCantidad] = useState(1);
 
@@ -49,25 +49,14 @@ export default function DetalleProductoPage() {
     ];
 
     function agregarAlCarrito() {
-        for (let i = 0; i < cantidad; i++) {
-            const raw = localStorage.getItem("eryo_carrito");
-            const carrito: Array<{ id: number; nombre: string; precio: number; cantidad: number; foto: string | null }> =
-                raw ? JSON.parse(raw) : [];
-            const existente = carrito.find((x) => x.id === producto!.id);
-            if (existente) {
-                existente.cantidad += 1;
-            } else {
-                carrito.push({
-                    id: producto!.id,
-                    nombre: producto!.nombre,
-                    precio: producto!.precio,
-                    cantidad: 1,
-                    foto: fotos[0]?.url ?? null,
-                });
-            }
-            localStorage.setItem("eryo_carrito", JSON.stringify(carrito));
-        }
-        toast.success(`${cantidad > 1 ? `${cantidad}x ` : ""}${producto!.nombre} agregado al carrito`);
+        if (!producto) return;
+        addToCart({
+            id: producto.id,
+            nombre: producto.nombre,
+            precio: producto.precio,
+            cantidad: cantidad,
+            foto: fotos[0]?.url ?? null,
+        }, cantidad);
     }
 
     return (

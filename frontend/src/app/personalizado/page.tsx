@@ -152,7 +152,7 @@ export default function PersonalizadoPage() {
                                 <Loader2 size={32} className="animate-spin" style={{ color: "#9356A0" }} />
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="grid grid-cols-1 gap-8">
                                 {tipos.map(categoria => {
                                     const items = compsDisponibles.filter(c => c.tipo === categoria.key);
                                     if (items.length === 0) return null;
@@ -160,7 +160,7 @@ export default function PersonalizadoPage() {
                                     return (
                                         <div key={categoria.key}>
                                             <h3 className="font-medium text-[rgba(220,202,233,0.8)] mb-3">{categoria.label}</h3>
-                                            <div className="flex flex-wrap gap-2">
+                                            <div className="flex flex-wrap gap-3">
                                                 {items.map(item => {
                                                     const isSelected = selectedComponentes.includes(item.id);
                                                     return (
@@ -168,17 +168,33 @@ export default function PersonalizadoPage() {
                                                             key={item.id}
                                                             type="button"
                                                             onClick={() => toggleComponente(item.id, categoria.key)}
-                                                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${isSelected
-                                                                    ? "shadow-lg"
-                                                                    : "hover:bg-[rgba(147,86,160,0.15)]"
+                                                            className={`flex items-center gap-3 p-2 pr-4 rounded-full text-sm font-medium transition-all ${isSelected
+                                                                ? "shadow-lg bg-[#9356A0] text-white border-[#DCCAE9]"
+                                                                : "hover:bg-[rgba(147,86,160,0.15)] text-[rgba(220,202,233,0.6)] border-[rgba(114,76,157,0.4)]"
                                                                 }`}
                                                             style={{
-                                                                background: isSelected ? "#9356A0" : "transparent",
-                                                                color: isSelected ? "#fff" : "rgba(220,202,233,0.6)",
-                                                                border: isSelected ? "1px solid #DCCAE9" : "1px solid rgba(114,76,157,0.4)"
+                                                                borderWidth: "1px",
+                                                                borderStyle: "solid"
                                                             }}
                                                         >
-                                                            {item.nombre}
+                                                            {/* Thumbnail Image */}
+                                                            {item.imagen_url ? (
+                                                                <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white/5 relative">
+                                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                    <img
+                                                                        src={item.imagen_url}
+                                                                        alt={item.nombre}
+                                                                        className="w-full h-full object-cover"
+                                                                        loading="lazy"
+                                                                    />
+                                                                </div>
+                                                            ) : (
+                                                                // Placeholder if no image
+                                                                <div className="w-8 h-8 rounded-full bg-[rgba(114,76,157,0.2)] shrink-0 flex items-center justify-center">
+                                                                    <Palette size={14} className={isSelected ? "text-[rgba(255,255,255,0.7)]" : "text-[#9356A0]"} />
+                                                                </div>
+                                                            )}
+                                                            <span>{item.nombre}</span>
                                                         </button>
                                                     );
                                                 })}

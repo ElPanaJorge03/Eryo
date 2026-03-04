@@ -1,5 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 from sqlalchemy.orm import Session, joinedload
+
+from app.services.email_service import (
+    send_email,
+    template_pedido_estandar_cliente,
+    template_pedido_personalizado_cliente,
+    template_precio_definido,
+    template_estado_actualizado,
+)
 
 from app.auth import get_current_admin
 from app.database import get_db
@@ -36,7 +44,11 @@ ESTADOS_PERSONALIZADO = [
 # ═════════════════════════════════════════════
 
 @router.post("/estandar", response_model=PedidoEstandarResponse, status_code=status.HTTP_201_CREATED)
-def crear_pedido_estandar(data: PedidoEstandarCreate, db: Session = Depends(get_db)):
+def crear_pedido_estandar(
+    data: PedidoEstandarCreate, 
+    background_tasks: BackgroundTasks, 
+    db: Session = Depends(get_db)
+):
     """
     Crea un pedido estándar (desde el catálogo).
     Público — lo usa el cliente al hacer checkout.
@@ -61,6 +73,8 @@ def crear_pedido_estandar(data: PedidoEstandarCreate, db: Session = Depends(get_
     db.add(pedido)
     db.flush()  # Para obtener el ID antes del commit
 
+    total_pedido = 0
+
     # Procesar cada item del carrito
     for item_data in data.items:
         producto = db.query(Producto).filter(Producto.id == item_data.producto_id).first()
@@ -82,19 +96,32 @@ def crear_pedido_estandar(data: PedidoEstandarCreate, db: Session = Depends(get_
 
         # Descontar stock
         producto.stock -= item_data.cantidad
+        precio_item = producto.precio
+        total_pedido += (precio_item * item_data.cantidad)
 
         item = ItemPedido(
             pedido_id=pedido.id,
             producto_id=producto.id,
             cantidad=item_data.cantidad,
-            precio_unitario=producto.precio,
+            precio_unitario=precio_item,
         )
         db.add(item)
 
     db.commit()
     db.refresh(pedido)
 
-    # TODO: Enviar correos (al cliente y al vendedor) vía Google Apps Script
+    # Enviar correo al cliente asíncronamente
+    html_content = template_pedido_estandar_cliente(
+        nombre=pedido.cliente_nombre,
+        id_pedido=pedido.id,
+        total=f"{total_pedido:,.2f}"
+    )
+    background_tasks.add_task(
+        send_email,
+        to_email=pedido.cliente_correo,
+        subject="¡Pedido Recibido! - Eryó Bisutería",
+        html_content=html_content
+    )
 
     return pedido
 
@@ -138,6 +165,7 @@ def obtener_pedido_estandar(
 def cambiar_estado_estandar(
     pedido_id: int,
     data: CambiarEstadoRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin: Admin = Depends(get_current_admin),
 ):
@@ -156,9 +184,36 @@ def cambiar_estado_estandar(
     db.commit()
     db.refresh(pedido)
 
-    # TODO: Enviar correo al cliente notificando cambio de estado
+    # Notificarr al cliente del cambio
+    html_content = template_estado_actualizado(
+        nombre=pedido.cliente_nombre,
+        id_pedido=pedido.id,
+        nuevo_estado=pedido.estado
+    )
+    background_tasks.add_task(
+        send_email,
+        to_email=pedido.cliente_correo,
+        subject=f"Tu pedido ahora está: {pedido.estado} - Eryó",
+        html_content=html_content
+    )
 
     return pedido
+
+
+@router.delete("/estandar/{pedido_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_pedido_estandar(
+    pedido_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(get_current_admin),
+):
+    """Elimina un pedido estándar. Solo admin."""
+    pedido = db.query(PedidoEstandar).filter(PedidoEstandar.id == pedido_id).first()
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado")
+    
+    db.delete(pedido)
+    db.commit()
+    return None
 
 
 # ═════════════════════════════════════════════
@@ -170,7 +225,11 @@ def cambiar_estado_estandar(
     response_model=PedidoPersonalizadoResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def crear_pedido_personalizado(data: PedidoPersonalizadoCreate, db: Session = Depends(get_db)):
+def crear_pedido_personalizado(
+    data: PedidoPersonalizadoCreate, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
     """
     Crea un pedido personalizado (el cliente elige componentes).
     Público — lo usa el cliente desde la sección de personalización.
@@ -210,7 +269,17 @@ def crear_pedido_personalizado(data: PedidoPersonalizadoCreate, db: Session = De
     db.commit()
     db.refresh(pedido)
 
-    # TODO: Enviar correo al vendedor notificando nuevo pedido personalizado
+    # Correo al cliente: "Gracias, evaluaremos precio"
+    html_content = template_pedido_personalizado_cliente(
+        nombre=pedido.cliente_nombre,
+        id_pedido=pedido.id
+    )
+    background_tasks.add_task(
+        send_email,
+        to_email=pedido.cliente_correo,
+        subject="Solicitud de Diseño Personalizado - Eryó",
+        html_content=html_content
+    )
 
     return pedido
 
@@ -261,6 +330,7 @@ def obtener_pedido_personalizado(
 def definir_precio(
     pedido_id: int,
     data: DefinirPrecioRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin: Admin = Depends(get_current_admin),
 ):
@@ -269,6 +339,9 @@ def definir_precio(
     Solo se puede definir cuando el estado es PENDIENTE.
     Cambia el estado a PRECIO_DEFINIDO automáticamente.
     """
+    from app.config import get_settings
+    settings = get_settings()
+
     pedido = db.query(PedidoPersonalizado).filter(PedidoPersonalizado.id == pedido_id).first()
     if not pedido:
         raise HTTPException(status_code=404, detail="Pedido no encontrado")
@@ -287,8 +360,25 @@ def definir_precio(
     db.commit()
     db.refresh(pedido)
 
-    # TODO: Enviar correo al cliente con enlace de confirmación
-    # El enlace lleva el token_confirmacion: {FRONTEND_URL}/confirmar/{pedido.token_confirmacion}
+    # Enviar correo al cliente con el enlace de confirmación
+    enlace = f"{settings.FRONTEND_URL}/api/pedidos/personalizado/confirmar/{pedido.token_confirmacion}"
+    # Opcional: Esto asume que el backend intercepta el link o que el frontend tiene una página. 
+    # Usaremos el link de la api directamente por simplicidad, o la url del frontend si tuvieramos /confirmar en React
+
+    enc_url = f"{settings.FRONTEND_URL}/confirmar/{pedido.token_confirmacion}"
+
+    html_content = template_precio_definido(
+        nombre=pedido.cliente_nombre,
+        id_pedido=pedido.id,
+        precio=pedido.precio_definido,
+        enlace=enc_url
+    )
+    background_tasks.add_task(
+        send_email,
+        to_email=pedido.cliente_correo,
+        subject="¡Precio Definido para tu Diseño! - Eryó",
+        html_content=html_content
+    )
 
     return pedido
 
@@ -337,6 +427,7 @@ def confirmar_precio(token: str, accion: str, db: Session = Depends(get_db)):
 def cambiar_estado_personalizado(
     pedido_id: int,
     data: CambiarEstadoRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin: Admin = Depends(get_current_admin),
 ):
@@ -355,6 +446,32 @@ def cambiar_estado_personalizado(
     db.commit()
     db.refresh(pedido)
 
-    # TODO: Enviar correo al cliente notificando cambio de estado
+    html_content = template_estado_actualizado(
+        nombre=pedido.cliente_nombre,
+        id_pedido=pedido.id,
+        nuevo_estado=pedido.estado
+    )
+    background_tasks.add_task(
+        send_email,
+        to_email=pedido.cliente_correo,
+        subject=f"Tu pedido personalizado ahora está: {pedido.estado} - Eryó",
+        html_content=html_content
+    )
 
     return pedido
+
+
+@router.delete("/personalizado/{pedido_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_pedido_personalizado(
+    pedido_id: int,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(get_current_admin),
+):
+    """Elimina un pedido personalizado. Solo admin."""
+    pedido = db.query(PedidoPersonalizado).filter(PedidoPersonalizado.id == pedido_id).first()
+    if not pedido:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado")
+    
+    db.delete(pedido)
+    db.commit()
+    return None

@@ -46,6 +46,7 @@ export interface Componente {
     tipo: string; // "tipo_pieza" | "tejido" | "color" | "digen"
     nombre: string;
     disponible: boolean;
+    imagen_url: string | null;
 }
 
 export interface ItemPedido {

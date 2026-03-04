@@ -81,9 +81,18 @@ def eliminar_componente(
     admin: Admin = Depends(get_current_admin),
 ):
     """Elimina un componente. Solo admin."""
+    from sqlalchemy.exc import IntegrityError
+    
     componente = db.query(Componente).filter(Componente.id == componente_id).first()
     if not componente:
         raise HTTPException(status_code=404, detail="Componente no encontrado")
 
-    db.delete(componente)
-    db.commit()
+    try:
+        db.delete(componente)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400, 
+            detail="No se puede eliminar este insumo porque ya figura dentro de la factura de un pedido. Por favor, ocúltalo (desactiva el escudo verde) en su lugar."
+        )
