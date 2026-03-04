@@ -5,8 +5,14 @@ from app.config import get_settings
 
 settings = get_settings()
 
+db_url = settings.DATABASE_URL
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
+elif db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+
 # Motor de conexión a PostgreSQL
-engine = create_engine(settings.DATABASE_URL)
+engine = create_engine(db_url)
 
 # Fábrica de sesiones — cada request usa su propia sesión
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
