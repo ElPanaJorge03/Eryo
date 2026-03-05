@@ -256,7 +256,16 @@ export default function AdminPedidosPage() {
                                         <p><strong>Tel:</strong> {p.cliente_telefono}</p>
                                         <p><strong>Correo:</strong> <a href={`mailto:${p.cliente_correo}`} className="text-[#9356A0] hover:underline">{p.cliente_correo}</a></p>
                                         <p><strong>Dirección:</strong> {p.direccion}</p>
-                                        <p className="mt-2 text-gray-300"><strong>Idea de Diseño:</strong><br />{p.descripcion}</p>
+                                        <div className="mt-2 text-gray-300">
+                                            <strong>Idea de Diseño:</strong>
+                                            <div className="mt-1 flex flex-col gap-1">
+                                                {p.descripcion.split('\n').map((line, idx) => (
+                                                    <span key={idx} className={line.trim() === '' ? 'h-2' : ''}>
+                                                        {line}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
                                         {p.notas && <p className="text-gray-400 mt-1 italic">"{p.notas}"</p>}
                                     </div>
 

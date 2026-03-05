@@ -185,9 +185,13 @@ export default function DetalleProductoPage() {
                         </div>
 
                         {producto.descripcion && (
-                            <p className="leading-relaxed whitespace-pre-wrap" style={{ color: "rgba(220,202,233,0.65)" }}>
-                                {producto.descripcion}
-                            </p>
+                            <div className="leading-relaxed text-[rgba(220,202,233,0.65)] flex flex-col gap-2">
+                                {producto.descripcion.split('\n').map((line, idx) => (
+                                    <p key={idx} className={line.trim() === '' ? 'h-2' : ''}>
+                                        {line}
+                                    </p>
+                                ))}
+                            </div>
                         )}
 
                         <hr className="divider" />
