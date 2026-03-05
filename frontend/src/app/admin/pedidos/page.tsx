@@ -172,6 +172,7 @@ export default function AdminPedidosPage() {
                                     <div className="text-sm mt-2">
                                         <p><strong>Cliente:</strong> {p.cliente_nombre}</p>
                                         <p><strong>Tel:</strong> {p.cliente_telefono}</p>
+                                        <p><strong>Correo:</strong> <a href={`mailto:${p.cliente_correo}`} className="text-[#9356A0] hover:underline">{p.cliente_correo}</a></p>
                                         <p><strong>Dirección:</strong> {p.direccion}</p>
                                         <p><strong>Pago:</strong> <span className="uppercase">{p.metodo_pago}</span></p>
                                         {p.notas && <p className="text-gray-400 mt-1 italic">"{p.notas}"</p>}
@@ -184,7 +185,7 @@ export default function AdminPedidosPage() {
                                         <ul className="text-sm flex flex-col gap-1">
                                             {p.items?.map((item) => (
                                                 <li key={item.id} className="flex justify-between">
-                                                    <span>{item.cantidad}x Producto #{item.producto_id}</span>
+                                                    <span>{item.cantidad}x {item.producto_nombre || `Producto #${item.producto_id}`}</span>
                                                     <span>{formatPrice(item.precio_unitario * item.cantidad)}</span>
                                                 </li>
                                             ))}
@@ -253,6 +254,7 @@ export default function AdminPedidosPage() {
                                     <div className="text-sm mt-2">
                                         <p><strong>Cliente:</strong> {p.cliente_nombre}</p>
                                         <p><strong>Tel:</strong> {p.cliente_telefono}</p>
+                                        <p><strong>Correo:</strong> <a href={`mailto:${p.cliente_correo}`} className="text-[#9356A0] hover:underline">{p.cliente_correo}</a></p>
                                         <p><strong>Dirección:</strong> {p.direccion}</p>
                                         <p className="mt-2 text-gray-300"><strong>Idea de Diseño:</strong><br />{p.descripcion}</p>
                                         {p.notas && <p className="text-gray-400 mt-1 italic">"{p.notas}"</p>}

@@ -70,6 +70,10 @@ class ItemPedido(Base):
     def __repr__(self):
         return f"<ItemPedido pedido={self.pedido_id} producto={self.producto_id} x{self.cantidad}>"
 
+    @property
+    def producto_nombre(self) -> str:
+        return self.producto.nombre if self.producto else f"Producto #{self.producto_id}"
+
 
 def _generar_token():
     """Genera un token único para confirmación de precio."""

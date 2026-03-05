@@ -82,7 +82,7 @@ export default function PersonalizadoPage() {
         { key: "tipo_pieza", label: "Tipo de Pieza" },
         { key: "tejido", label: "Estilo de Tejido" },
         { key: "color", label: "Color del Hilo" },
-        { key: "digen", label: "Dijen / Centro" }
+        { key: "digen", label: "Herraje/Dije" }
     ];
 
     if (success) {

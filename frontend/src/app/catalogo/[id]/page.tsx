@@ -44,7 +44,7 @@ export default function DetalleProductoPage() {
         { label: "Tipo", value: producto.tipo },
         { label: "Estilo tejido", value: producto.estilo_tejido },
         { label: "Color hilo", value: producto.color_hilo },
-        { label: "Digen", value: producto.digen },
+        { label: "Herraje/Dije", value: producto.digen },
         { label: "Stock", value: producto.stock > 0 ? `${producto.stock} disponibles` : "Agotado" },
     ];
 
@@ -179,16 +179,16 @@ export default function DetalleProductoPage() {
                             {producto.nombre}
                         </h1>
 
-                        {producto.descripcion && (
-                            <p className="leading-relaxed" style={{ color: "rgba(220,202,233,0.65)" }}>
-                                {producto.descripcion}
-                            </p>
-                        )}
-
                         {/* Precio */}
                         <div className="text-3xl font-bold" style={{ color: "#9356A0" }}>
                             {formatPrice(producto.precio)}
                         </div>
+
+                        {producto.descripcion && (
+                            <p className="leading-relaxed whitespace-pre-wrap" style={{ color: "rgba(220,202,233,0.65)" }}>
+                                {producto.descripcion}
+                            </p>
+                        )}
 
                         <hr className="divider" />
 

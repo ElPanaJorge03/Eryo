@@ -242,9 +242,9 @@ export default function NuevoProductoPage() {
                             />
                         </div>
 
-                        {/* Digen / Centro */}
+                        {/* Herraje/Dije */}
                         <div>
-                            <label htmlFor="digen" className="input-label">Dijen o Pieza Central</label>
+                            <label htmlFor="digen" className="input-label">Herraje/Dije</label>
                             <input
                                 id="digen"
                                 name="digen"

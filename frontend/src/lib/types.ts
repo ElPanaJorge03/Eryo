@@ -54,6 +54,7 @@ export interface ItemPedido {
     producto_id: number;
     cantidad: number;
     precio_unitario: number;
+    producto_nombre?: string;
 }
 
 export type EstadoEstandar =

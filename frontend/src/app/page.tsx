@@ -87,7 +87,7 @@ export default function HomePage() {
               {
                 icon: <Gem size={24} style={{ color: "#9356A0" }} />,
                 title: "Materiales cuidados",
-                desc: "Hilos, digens y cuentas seleccionados para cada pieza.",
+                desc: "Hilos, herrajes/dijes y cuentas seleccionados para cada pieza.",
               },
               {
                 icon: <Scissors size={24} style={{ color: "#9356A0" }} />,

@@ -20,6 +20,7 @@ class ItemPedidoResponse(BaseModel):
     producto_id: int
     cantidad: int
     precio_unitario: float
+    producto_nombre: str | None = None
 
     model_config = {"from_attributes": True}
 
