@@ -41,3 +41,16 @@ def root():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+@app.get("/api/init-db")
+def init_db():
+    from app.database import engine, Base
+    import app.models.admin
+    import app.models.categoria
+    import app.models.componente
+    import app.models.producto
+    import app.models.pedido
+    
+    Base.metadata.create_all(bind=engine)
+    return {"message": "Tablas de la base de datos creadas exitosamente 🚀"}
