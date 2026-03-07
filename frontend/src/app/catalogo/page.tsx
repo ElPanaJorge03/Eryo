@@ -89,7 +89,7 @@ export default function CatalogoPage() {
                     style={{ background: "rgba(20,10,30,0.5)" }}
                 >
                     {expandida ? (
-                        <div className="grid grid-cols-2 gap-4 p-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-4">
                             {productosFila.map((p) => (
                                 <div key={p.id}>
                                     <ProductCard producto={p} onAgregar={agregarAlCarrito} />
