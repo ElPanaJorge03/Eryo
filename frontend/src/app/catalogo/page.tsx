@@ -68,7 +68,7 @@ export default function CatalogoPage() {
     }: { titulo: string; productosFila: ProductoResumen[]; filaKey: string }) {
         const expandida = !!filasExpandidas[filaKey];
         return (
-            <section className="w-full">
+            <section className="w-full min-w-0">
                 <div className="flex items-center justify-between mb-4 px-1">
                     <h2 className="text-xl font-bold capitalize" style={{ color: "#DCCAE9" }}>{titulo}</h2>
                     <button
@@ -111,7 +111,7 @@ export default function CatalogoPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col overflow-x-hidden w-full">
             {/* ── Navbar ─────────────────────────────── */}
             <header
                 className="sticky top-0 z-50 backdrop-blur-md"
@@ -137,7 +137,7 @@ export default function CatalogoPage() {
                 </nav>
             </header>
 
-            <main className="flex-1 page-container py-10">
+            <main className="flex-1 page-container py-10 min-w-0 w-full flex flex-col">
                 {/* ── Encabezado ─────────────────────────── */}
                 <div className="mb-8">
                     <h1 className="section-title">Catálogo</h1>
@@ -270,7 +270,7 @@ export default function CatalogoPage() {
                         ))}
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-8 w-full">
+                    <div className="flex flex-col gap-8 w-full min-w-0">
                         {/* Primera fila: últimos productos agregados */}
                         {productos && productos.length > 0 && (
                             <FilaProductos
