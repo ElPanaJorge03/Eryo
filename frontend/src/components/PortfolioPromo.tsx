@@ -68,7 +68,7 @@ export function PortfolioPromo() {
                 </div>
 
                 <a
-                    href="mailto:jorgeb2123@gmail.com?subject=Consulta sobre desarrollo web&body=Hola Jorge, vi la página de Eryó y me gustaría consultarte sobre..."
+                    href="mailto:jorgejimmartinez333@gmail.com?subject=Consulta sobre desarrollo web&body=Hola Jorge, vi la página de Eryó y me gustaría consultarte sobre..."
                     className="flex items-center justify-center gap-1.5 w-full py-1.5 px-3 rounded-lg text-[11px] font-semibold mt-2 transition-all group"
                     style={{
                         background: "linear-gradient(135deg, #9356A0 0%, #724C9D 100%)",
