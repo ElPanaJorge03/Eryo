@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routes import admin, categorias, componentes, pedidos, productos
+from app.routes import admin, categorias, componentes, pedidos, productos, push
 
 settings = get_settings()
 
@@ -31,6 +31,7 @@ app.include_router(categorias.router)
 app.include_router(componentes.router)
 app.include_router(productos.router)
 app.include_router(pedidos.router)
+app.include_router(push.router)
 
 
 @app.get("/")
@@ -51,6 +52,7 @@ def init_db():
     import app.models.componente
     import app.models.producto
     import app.models.pedido
+    import app.models.push
     
     Base.metadata.create_all(bind=engine)
     return {"message": "Tablas de la base de datos creadas exitosamente 🚀"}

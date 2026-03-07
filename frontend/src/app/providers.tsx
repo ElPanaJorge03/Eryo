@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { useState } from "react";
 import { CartProvider } from "@/lib/CartContext";
+import { PushNotifications } from "@/components/PushNotifications";
 
 export function Providers({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(
@@ -25,6 +26,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
             <CartProvider>
                 {children}
+                <PushNotifications />
             </CartProvider>
             <Toaster
                 position="top-right"

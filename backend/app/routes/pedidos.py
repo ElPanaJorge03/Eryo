@@ -11,6 +11,7 @@ from app.services.email_service import (
     template_pedido_nuevo_vendedor_personalizado,
 )
 from app.config import get_settings
+from app.services.push_service import notify_admins, notify_user_by_email
 
 from app.auth import get_current_admin
 from app.database import get_db
@@ -147,6 +148,16 @@ def crear_pedido_estandar(
             subject=f"Nuevo pedido #{pedido.id} - Eryó",
             html_content=html_vendedor,
         )
+        
+    background_tasks.add_task(
+        notify_admins,
+        db=db,
+        payload={
+            "title": "Nuevo Pedido",
+            "body": f"El cliente {pedido.cliente_nombre} generó el pedido #{pedido.id}",
+            "url": f"/admin/pedidos"
+        }
+    )
 
     return pedido
 
@@ -220,6 +231,17 @@ def cambiar_estado_estandar(
         to_email=pedido.cliente_correo,
         subject=f"Tu pedido ahora está: {pedido.estado} - Eryó",
         html_content=html_content
+    )
+
+    background_tasks.add_task(
+        notify_user_by_email,
+        db=db,
+        email=pedido.cliente_correo,
+        payload={
+            "title": "Actualización de tu pedido",
+            "body": f"Tu pedido #{pedido.id} ahora está en estado {pedido.estado}",
+            "url": "/"
+        }
     )
 
     return pedido
@@ -322,6 +344,16 @@ def crear_pedido_personalizado(
             subject=f"Nueva solicitud personalizada #{pedido.id} - Eryó",
             html_content=html_vendedor,
         )
+        
+    background_tasks.add_task(
+        notify_admins,
+        db=db,
+        payload={
+            "title": "Nuevo Diseño Personalizado",
+            "body": f"{pedido.cliente_nombre} quiere hacer un pedido personalizado. #{pedido.id}",
+            "url": f"/admin/pedidos"
+        }
+    )
 
     return pedido
 
@@ -422,6 +454,17 @@ def definir_precio(
         html_content=html_content
     )
 
+    background_tasks.add_task(
+        notify_user_by_email,
+        db=db,
+        email=pedido.cliente_correo,
+        payload={
+            "title": "Precio Definido",
+            "body": f"Tu diseño personalizado #{pedido.id} ahora tiene precio: ${pedido.precio_definido}. Abre la notificación para confirmar o rechazar.",
+            "url": enc_url
+        }
+    )
+
     return pedido
 
 
@@ -498,6 +541,17 @@ def cambiar_estado_personalizado(
         to_email=pedido.cliente_correo,
         subject=f"Tu pedido personalizado ahora está: {pedido.estado} - Eryó",
         html_content=html_content
+    )
+
+    background_tasks.add_task(
+        notify_user_by_email,
+        db=db,
+        email=pedido.cliente_correo,
+        payload={
+            "title": "Actualización de Pedido",
+            "body": f"Tu diseño personalizado #{pedido.id} ahora está en estado {pedido.estado}",
+            "url": "/"
+        }
     )
 
     return pedido

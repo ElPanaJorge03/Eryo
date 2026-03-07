@@ -68,6 +68,9 @@ export default function PersonalizadoPage() {
             setSuccess(true);
             toast.success("Solicitud enviada con éxito");
 
+            // Asociar correo con push info
+            window.dispatchEvent(new CustomEvent("update-push-email", { detail: formData.cliente_correo }));
+
         } catch (err: any) {
             console.error(err);
             toast.error(err?.response?.data?.detail ?? "Error al enviar la solicitud.");

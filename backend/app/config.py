@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     # Notificaciones al vendedor (correo donde llegan los avisos de nuevos pedidos)
     VENDEDOR_EMAIL: str = ""
 
+    # Web Push
+    VAPID_PRIVATE_KEY: str = ""
+    VAPID_CLAIMS_EMAIL: str = "mailto:admin@eryo.com"
+
     # CORS
     FRONTEND_URL: str = "http://localhost:3000"
 
