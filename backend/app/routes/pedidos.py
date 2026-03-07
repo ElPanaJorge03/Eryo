@@ -7,7 +7,10 @@ from app.services.email_service import (
     template_pedido_personalizado_cliente,
     template_precio_definido,
     template_estado_actualizado,
+    template_pedido_nuevo_vendedor_estandar,
+    template_pedido_nuevo_vendedor_personalizado,
 )
+from app.config import get_settings
 
 from app.auth import get_current_admin
 from app.database import get_db
@@ -122,6 +125,28 @@ def crear_pedido_estandar(
         subject="¡Pedido Recibido! - Eryó Bisutería",
         html_content=html_content
     )
+
+    # Notificar al vendedor
+    settings = get_settings()
+    if settings.VENDEDOR_EMAIL:
+        items_texto = "\n".join(
+            f"  • {item.cantidad} x {item.precio_unitario:,.2f} (producto_id {item.producto_id})"
+            for item in pedido.items
+        )
+        html_vendedor = template_pedido_nuevo_vendedor_estandar(
+            id_pedido=pedido.id,
+            cliente_nombre=pedido.cliente_nombre,
+            cliente_telefono=pedido.cliente_telefono,
+            cliente_correo=pedido.cliente_correo,
+            total=f"{total_pedido:,.2f}",
+            items_texto=items_texto,
+        )
+        background_tasks.add_task(
+            send_email,
+            to_email=settings.VENDEDOR_EMAIL,
+            subject=f"Nuevo pedido #{pedido.id} - Eryó",
+            html_content=html_vendedor,
+        )
 
     return pedido
 
@@ -280,6 +305,23 @@ def crear_pedido_personalizado(
         subject="Solicitud de Diseño Personalizado - Eryó",
         html_content=html_content
     )
+
+    # Notificar al vendedor
+    settings = get_settings()
+    if settings.VENDEDOR_EMAIL:
+        html_vendedor = template_pedido_nuevo_vendedor_personalizado(
+            id_pedido=pedido.id,
+            cliente_nombre=pedido.cliente_nombre,
+            cliente_telefono=pedido.cliente_telefono,
+            cliente_correo=pedido.cliente_correo,
+            descripcion=pedido.descripcion,
+        )
+        background_tasks.add_task(
+            send_email,
+            to_email=settings.VENDEDOR_EMAIL,
+            subject=f"Nueva solicitud personalizada #{pedido.id} - Eryó",
+            html_content=html_vendedor,
+        )
 
     return pedido
 

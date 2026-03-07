@@ -123,6 +123,40 @@ def template_precio_definido(nombre, id_pedido, precio, enlace):
     """
     return get_base_template(content)
 
+def template_pedido_nuevo_vendedor_estandar(id_pedido, cliente_nombre, cliente_telefono, cliente_correo, total, items_texto):
+    content = f"""
+    <h2 style="color: #1a1025; margin-top: 0; font-size: 22px;">Nuevo pedido estándar</h2>
+    <p>Se ha registrado un nuevo pedido en la tienda.</p>
+    <div style="background-color: #f8f5fc; border-left: 4px solid #9356A0; padding: 15px 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+        <p style="margin: 0 0 8px 0;"><strong>Nº de pedido:</strong> <span style="color: #9356A0;">#{id_pedido}</span></p>
+        <p style="margin: 0 0 8px 0;"><strong>Cliente:</strong> {cliente_nombre}</p>
+        <p style="margin: 0 0 8px 0;"><strong>Teléfono:</strong> {cliente_telefono}</p>
+        <p style="margin: 0 0 8px 0;"><strong>Correo:</strong> {cliente_correo}</p>
+        <p style="margin: 0 0 8px 0;"><strong>Total:</strong> ${total}</p>
+        <p style="margin: 0; white-space: pre-wrap; font-size: 14px;">{items_texto}</p>
+    </div>
+    <p style="margin-bottom: 0;">Revisa el panel de administración para confirmar y gestionar el pedido.</p>
+    """
+    return get_base_template(content)
+
+
+def template_pedido_nuevo_vendedor_personalizado(id_pedido, cliente_nombre, cliente_telefono, cliente_correo, descripcion):
+    content = f"""
+    <h2 style="color: #1a1025; margin-top: 0; font-size: 22px;">Nueva solicitud de pedido personalizado</h2>
+    <p>Un cliente ha solicitado una pieza personalizada.</p>
+    <div style="background-color: #f8f5fc; border-left: 4px solid #9356A0; padding: 15px 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+        <p style="margin: 0 0 8px 0;"><strong>Nº de solicitud:</strong> <span style="color: #9356A0;">#{id_pedido}</span></p>
+        <p style="margin: 0 0 8px 0;"><strong>Cliente:</strong> {cliente_nombre}</p>
+        <p style="margin: 0 0 8px 0;"><strong>Teléfono:</strong> {cliente_telefono}</p>
+        <p style="margin: 0 0 8px 0;"><strong>Correo:</strong> {cliente_correo}</p>
+        <p style="margin: 0;"><strong>Descripción:</strong></p>
+        <p style="margin: 8px 0 0 0; white-space: pre-wrap;">{descripcion or '—'}</p>
+    </div>
+    <p style="margin-bottom: 0;">Revisa el panel de administración para definir el precio y gestionar la solicitud.</p>
+    """
+    return get_base_template(content)
+
+
 def template_estado_actualizado(nombre, id_pedido, nuevo_estado):
     estado_limpio = nuevo_estado.replace("_", " ")
     content = f"""

@@ -23,6 +23,7 @@ export interface Producto {
     tipo: string;
     estilo_tejido: string;
     color_hilo: string;
+    /** Herraje/dije (campo API: digen) */
     digen: string;
     stock: number;
     activo: boolean;
@@ -43,7 +44,7 @@ export interface ProductoResumen {
 
 export interface Componente {
     id: number;
-    tipo: string; // "tipo_pieza" | "tejido" | "color" | "digen"
+    tipo: string; // "tipo_pieza" | "tejido" | "color" | "dije" (digen en API)
     nombre: string;
     disponible: boolean;
     imagen_url: string | null;

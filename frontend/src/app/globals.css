@@ -59,6 +59,27 @@
     background: #724C9D;
   }
 
+  /* Scroll horizontal (filas del catálogo en PC) */
+  .catalogo-fila-scroll {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .catalogo-fila-scroll::-webkit-scrollbar {
+    height: 8px;
+  }
+  .catalogo-fila-scroll::-webkit-scrollbar-track {
+    background: rgba(20, 10, 30, 0.5);
+    border-radius: 4px;
+  }
+  .catalogo-fila-scroll::-webkit-scrollbar-thumb {
+    background: rgba(147, 86, 160, 0.5);
+    border-radius: 4px;
+  }
+  .catalogo-fila-scroll::-webkit-scrollbar-thumb:hover {
+    background: #9356A0;
+  }
+
   /* Focus visible */
   :focus-visible {
     outline: 2px solid #9356A0;

@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     # Google Apps Script
     GAS_WEBHOOK_URL: str = ""
 
+    # Notificaciones al vendedor (correo donde llegan los avisos de nuevos pedidos)
+    VENDEDOR_EMAIL: str = ""
+
     # CORS
     FRONTEND_URL: str = "http://localhost:3000"
 

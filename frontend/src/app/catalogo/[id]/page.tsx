@@ -44,7 +44,7 @@ export default function DetalleProductoPage() {
         { label: "Tipo", value: producto.tipo },
         { label: "Estilo tejido", value: producto.estilo_tejido },
         { label: "Color hilo", value: producto.color_hilo },
-        { label: "Herraje/Dije", value: producto.digen },
+        { label: "Dije / Herraje", value: producto.digen },
         { label: "Stock", value: producto.stock > 0 ? `${producto.stock} disponibles` : "Agotado" },
     ];
 

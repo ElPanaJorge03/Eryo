@@ -43,6 +43,7 @@ def listar_productos(
     if busqueda:
         query = query.filter(Producto.nombre.ilike(f"%{busqueda}%"))
 
+    query = query.order_by(Producto.id.desc())
     productos = query.options(joinedload(Producto.fotos)).offset(skip).limit(limit).all()
 
     # Construir respuesta con foto principal
@@ -86,6 +87,7 @@ def listar_productos_admin(
     productos = (
         db.query(Producto)
         .options(joinedload(Producto.fotos))
+        .order_by(Producto.id.desc())
         .offset(skip)
         .limit(limit)
         .all()

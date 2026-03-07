@@ -1,0 +1,18 @@
+{
+  "name": "Eryó — Bisutería Artesanal",
+  "short_name": "Eryó",
+  "description": "Tienda de bisutería artesanal en Barranquilla. Catálogo, pedidos y panel de vendedor.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0205",
+  "theme_color": "#9356A0",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/vercel.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

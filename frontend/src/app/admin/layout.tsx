@@ -8,6 +8,7 @@ import {
     LogOut, Menu, X, ChevronRight,
 } from "lucide-react";
 import { EryoLogo } from "@/components/EryoLogo";
+import { InstallPWAButton } from "@/components/InstallPWAButton";
 import { isAuthenticated, clearToken } from "@/lib/auth";
 
 const NAV = [
@@ -72,12 +73,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
                 {/* Logo */}
                 <div
-                    className="p-4 flex items-center justify-between"
+                    className="p-4 flex flex-col gap-3"
                     style={{ borderBottom: "1px solid rgba(114,76,157,0.15)" }}
                 >
                     <Link href="/" aria-label="Ver tienda">
                         <EryoLogo height={40} />
                     </Link>
+                    <InstallPWAButton />
                 </div>
 
                 {/* Label */}
@@ -141,9 +143,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link href="/">
                         <EryoLogo height={28} />
                     </Link>
-                    <button onClick={logout} className="p-2 text-red-400 opacity-80" aria-label="Cerrar sesión">
-                        <LogOut size={20} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <InstallPWAButton />
+                        <button onClick={logout} className="p-2 text-red-400 opacity-80" aria-label="Cerrar sesión">
+                            <LogOut size={20} />
+                        </button>
+                    </div>
                 </header>
 
                 <main className="flex-1 p-4 md:p-8">

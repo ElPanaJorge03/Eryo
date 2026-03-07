@@ -7,7 +7,7 @@ import {
     Plus, Trash2, Upload, ImageOff, Eye, EyeOff,
     Loader2, X, CheckCircle, Edit3
 } from "lucide-react";
-import { useProductosAdmin, useEliminarProducto } from "@/lib/hooks";
+import { useProductosAdmin, useEliminarProducto, useCategorias } from "@/lib/hooks";
 import { uploadMultipleToCloudinary } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/utils";
 import api from "@/lib/api";
@@ -267,6 +267,7 @@ function FotoManager({ producto, onClose }: FotoManagerProps) {
 export default function AdminProductosPage() {
     const qc = useQueryClient();
     const { data: productos, isLoading } = useProductosAdmin();
+    const { data: categorias } = useCategorias();
     const eliminar = useEliminarProducto();
     const [fotoManager, setFotoManager] = useState<ProductoResumen | null>(null);
 
@@ -323,7 +324,7 @@ export default function AdminProductosPage() {
                     <table className="w-full text-sm min-w-max">
                         <thead>
                             <tr style={{ borderBottom: "1px solid rgba(114,76,157,0.2)" }}>
-                                {["Foto", "Nombre", "Tipo", "Precio", "Stock", "Estado", "Acciones"].map((h) => (
+                                {["Foto", "Nombre", "Tipo", "Categoría", "Precio", "Stock", "Estado", "Acciones"].map((h) => (
                                     <th
                                         key={h}
                                         className="text-left px-4 py-3 font-semibold"
@@ -365,6 +366,12 @@ export default function AdminProductosPage() {
 
                                     <td className="px-4 py-3" style={{ color: "rgba(220,202,233,0.6)" }}>
                                         {p.tipo}
+                                    </td>
+
+                                    <td className="px-4 py-3" style={{ color: "rgba(220,202,233,0.5)" }}>
+                                        {p.categoria_id != null
+                                            ? categorias?.find((c) => c.id === p.categoria_id)?.nombre ?? "—"
+                                            : "—"}
                                     </td>
 
                                     <td className="px-4 py-3 font-semibold" style={{ color: "#9356A0" }}>

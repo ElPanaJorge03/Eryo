@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
-import { Search, SlidersHorizontal, X, Gem } from "lucide-react";
+import { Search, SlidersHorizontal, X, Gem, ChevronDown, ChevronUp } from "lucide-react";
 import { useCategorias, useProductos } from "@/lib/hooks";
 import { ProductCard, ProductCardSkeleton } from "@/components/ProductCard";
 import { Select } from "@/components/Select";
@@ -13,19 +13,30 @@ import toast from "react-hot-toast";
 import { useCart } from "@/lib/CartContext";
 
 const TIPOS = ["Manilla", "Anillo", "Collar", "Aretes", "Tobillera"];
+const ULTIMOS_LIMIT = 8;
 
 export default function CatalogoPage() {
     const [busqueda, setBusqueda] = useState("");
     const [categoriaId, setCategoriaId] = useState<number | undefined>();
     const [tipo, setTipo] = useState<string | undefined>();
     const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
+    /** "tipo" = filas por tipo de pieza; "categoria" = filas por categoría */
+    const [vistaPor, setVistaPor] = useState<"tipo" | "categoria">("tipo");
+    /** Clave = id de sección (tipo o categoria_id), valor = si la fila está expandida (ver más) */
+    const [filasExpandidas, setFilasExpandidas] = useState<Record<string, boolean>>({});
 
     const { data: categorias } = useCategorias();
+    const hayFiltros = !!busqueda || !!categoriaId || !!tipo;
     const {
         data: productos,
         isLoading,
         isError,
-    } = useProductos({ categoria_id: categoriaId, tipo, busqueda: busqueda || undefined });
+    } = useProductos({
+        categoria_id: categoriaId,
+        tipo,
+        busqueda: busqueda || undefined,
+        limit: hayFiltros ? undefined : 100,
+    });
 
     const limpiarFiltros = () => {
         setBusqueda("");
@@ -33,7 +44,6 @@ export default function CatalogoPage() {
         setTipo(undefined);
     };
 
-    const hayFiltros = !!busqueda || !!categoriaId || !!tipo;
     const { addToCart, totalItems } = useCart();
 
     function agregarAlCarrito(producto: ProductoResumen) {
@@ -44,6 +54,60 @@ export default function CatalogoPage() {
             cantidad: 1,
             foto: producto.foto_principal,
         });
+    }
+
+    const toggleFila = useCallback((key: string) => {
+        setFilasExpandidas((prev) => ({ ...prev, [key]: !prev[key] }));
+    }, []);
+
+    /** Fila horizontal con scroll que funciona en PC y móvil */
+    function FilaProductos({
+        titulo,
+        productosFila,
+        filaKey,
+    }: { titulo: string; productosFila: ProductoResumen[]; filaKey: string }) {
+        const expandida = !!filasExpandidas[filaKey];
+        return (
+            <section className="w-full">
+                <div className="flex items-center justify-between mb-4 px-1">
+                    <h2 className="text-xl font-bold capitalize" style={{ color: "#DCCAE9" }}>{titulo}</h2>
+                    <button
+                        type="button"
+                        onClick={() => toggleFila(filaKey)}
+                        className="btn btn-ghost btn-sm text-sm flex items-center gap-1"
+                        style={{ color: "#9356A0" }}
+                    >
+                        {expandida ? (
+                            <><ChevronUp size={16} /> Ver menos</>
+                        ) : (
+                            <><ChevronDown size={16} /> Ver más</>
+                        )}
+                    </button>
+                </div>
+                <div
+                    className="w-full overflow-hidden rounded-xl border border-[rgba(114,76,157,0.2)] min-w-0"
+                    style={{ background: "rgba(20,10,30,0.5)" }}
+                >
+                    {expandida ? (
+                        <div className="grid grid-cols-2 gap-4 p-4">
+                            {productosFila.map((p) => (
+                                <div key={p.id}>
+                                    <ProductCard producto={p} onAgregar={agregarAlCarrito} />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="catalogo-fila-scroll flex gap-4 p-4 min-w-0">
+                            {productosFila.map((p) => (
+                                <div key={p.id} className="w-[160px] md:w-[220px] shrink-0 snap-start">
+                                    <ProductCard producto={p} onAgregar={agregarAlCarrito} />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </section>
+        );
     }
 
     return (
@@ -207,46 +271,87 @@ export default function CatalogoPage() {
                     </div>
                 ) : (
                     <div className="flex flex-col gap-8 w-full">
-                        {TIPOS.map((tipoName) => {
-                            const prodsTipo = productos?.filter((p) => p.tipo === tipoName);
-                            if (!prodsTipo || prodsTipo.length === 0) return null;
+                        {/* Primera fila: últimos productos agregados */}
+                        {productos && productos.length > 0 && (
+                            <FilaProductos
+                                titulo="Últimos agregados"
+                                productosFila={productos.slice(0, ULTIMOS_LIMIT)}
+                                filaKey="ultimos"
+                            />
+                        )}
 
-                            return (
-                                <section key={tipoName} className="w-full">
-                                    <h2 className="text-xl font-bold mb-4 capitalize px-1" style={{ color: "#DCCAE9" }}>{tipoName}s</h2>
-                                    {/* Contenedor tipo tarjeta que aísla el desbordamiento de su interior */}
-                                    <div className="w-[calc(100vw-48px)] md:w-full overflow-hidden rounded-xl border border-[rgba(114,76,157,0.2)]" style={{ background: "rgba(20,10,30,0.5)" }}>
-                                        <div className="w-full overflow-x-auto flex gap-4 p-4 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                                            {prodsTipo.map((p) => (
-                                                <div key={p.id} className="w-[160px] md:w-[220px] flex-shrink-0 snap-start">
-                                                    <ProductCard producto={p} onAgregar={agregarAlCarrito} />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </section>
-                            );
-                        })}
+                        {/* Toggle ver por tipo o por categoría */}
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm" style={{ color: "rgba(220,202,233,0.6)" }}>Ver filas por:</span>
+                            <button
+                                type="button"
+                                onClick={() => setVistaPor("tipo")}
+                                className={`btn btn-sm ${vistaPor === "tipo" ? "btn-primary" : "btn-ghost"}`}
+                            >
+                                Tipo
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setVistaPor("categoria")}
+                                className={`btn btn-sm ${vistaPor === "categoria" ? "btn-primary" : "btn-ghost"}`}
+                            >
+                                Categoría
+                            </button>
+                        </div>
 
-                        {/* Productos de otros tipos no documentados */}
-                        {(() => {
-                            const sinTipo = productos?.filter((p) => !TIPOS.includes(p.tipo));
-                            if (!sinTipo || sinTipo.length === 0) return null;
-                            return (
-                                <section className="w-full">
-                                    <h2 className="text-xl font-bold mb-4 text-gray-500 px-1">Otras piezas</h2>
-                                    <div className="w-[calc(100vw-48px)] md:w-full overflow-hidden rounded-xl border border-[rgba(114,76,157,0.2)]" style={{ background: "rgba(20,10,30,0.5)" }}>
-                                        <div className="w-full overflow-x-auto flex gap-4 p-4 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                                            {sinTipo.map((p) => (
-                                                <div key={p.id} className="w-[160px] md:w-[220px] flex-shrink-0 snap-start">
-                                                    <ProductCard producto={p} onAgregar={agregarAlCarrito} />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </section>
-                            );
-                        })()}
+                        {vistaPor === "tipo" ? (
+                            <>
+                                {TIPOS.map((tipoName) => {
+                                    const prodsTipo = productos?.filter((p) => p.tipo === tipoName) ?? [];
+                                    if (prodsTipo.length === 0) return null;
+                                    return (
+                                        <FilaProductos
+                                            key={tipoName}
+                                            titulo={`${tipoName}s`}
+                                            productosFila={prodsTipo}
+                                            filaKey={`tipo-${tipoName}`}
+                                        />
+                                    );
+                                })}
+                                {(() => {
+                                    const sinTipo = productos?.filter((p) => !TIPOS.includes(p.tipo)) ?? [];
+                                    if (sinTipo.length === 0) return null;
+                                    return (
+                                        <FilaProductos
+                                            titulo="Otras piezas"
+                                            productosFila={sinTipo}
+                                            filaKey="tipo-otras"
+                                        />
+                                    );
+                                })()}
+                            </>
+                        ) : (
+                            <>
+                                {categorias?.map((cat) => {
+                                    const prodsCat = productos?.filter((p) => p.categoria_id === cat.id) ?? [];
+                                    if (prodsCat.length === 0) return null;
+                                    return (
+                                        <FilaProductos
+                                            key={cat.id}
+                                            titulo={cat.nombre}
+                                            productosFila={prodsCat}
+                                            filaKey={`cat-${cat.id}`}
+                                        />
+                                    );
+                                })}
+                                {(() => {
+                                    const sinCat = productos?.filter((p) => p.categoria_id == null) ?? [];
+                                    if (sinCat.length === 0) return null;
+                                    return (
+                                        <FilaProductos
+                                            titulo="Sin categoría"
+                                            productosFila={sinCat}
+                                            filaKey="cat-sin"
+                                        />
+                                    );
+                                })()}
+                            </>
+                        )}
                     </div>
                 )}
             </main>

@@ -7,6 +7,7 @@ import Link from "next/link";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCategorias } from "@/lib/hooks";
 
 export default function NuevoProductoPage() {
     const router = useRouter();
@@ -18,14 +19,16 @@ export default function NuevoProductoPage() {
         nombre: "",
         descripcion: "",
         precio: "",
-        tipo: "Manilla", // Valor por defecto
+        tipo: "Manilla",
         estilo_tejido: "",
         color_hilo: "",
         digen: "",
         stock: "1",
         activo: true,
+        categoria_id: "" as string | number,
     });
 
+    const { data: categorias } = useCategorias();
     const tiposDisponibles = ["Manilla", "Anillo", "Collar", "Aretes", "Tobillera", "Accesorio"];
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
@@ -48,6 +51,7 @@ export default function NuevoProductoPage() {
                 ...formData,
                 precio: parseFloat(formData.precio),
                 stock: parseInt(formData.stock, 10),
+                categoria_id: formData.categoria_id ? Number(formData.categoria_id) : null,
             };
 
             if (isNaN(payload.precio) || payload.precio <= 0) {
@@ -179,6 +183,28 @@ export default function NuevoProductoPage() {
                             >
                                 {tiposDisponibles.map((t) => (
                                     <option key={t} value={t} className="bg-[#0f0818]">{t}</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+                                ▼
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Categoría */}
+                    <div>
+                        <label htmlFor="categoria_id" className="input-label">Categoría</label>
+                        <div className="relative">
+                            <select
+                                id="categoria_id"
+                                name="categoria_id"
+                                value={formData.categoria_id === "" ? "" : formData.categoria_id}
+                                onChange={handleChange}
+                                className="input appearance-none pr-10"
+                            >
+                                <option value="" className="bg-[#0f0818]">Sin categoría</option>
+                                {categorias?.map((c) => (
+                                    <option key={c.id} value={c.id} className="bg-[#0f0818]">{c.nombre}</option>
                                 ))}
                             </select>
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">

@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   description:
     "Tienda en línea de bisutería artesanal en Barranquilla. Manillas, anillos, collares y pedidos personalizados.",
   keywords: ["bisutería", "manillas", "artesanal", "Barranquilla", "accesorios"],
+  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
