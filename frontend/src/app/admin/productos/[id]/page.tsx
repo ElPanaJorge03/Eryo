@@ -221,9 +221,9 @@ export default function EditarProductoPage() {
                                     alt="Preview"
                                     className="w-full h-full object-cover"
                                 />
-                            ) : producto?.foto_principal ? (
+                            ) : producto?.fotos?.[0]?.url ? (
                                 <Image
-                                    src={producto.foto_principal}
+                                    src={producto.fotos[0].url}
                                     alt={producto.nombre}
                                     fill
                                     className="object-cover"
@@ -278,7 +278,7 @@ export default function EditarProductoPage() {
                             <>
                                 <div>
                                     <p className="text-xs" style={{ color: "rgba(220,202,233,0.6)" }}>
-                                        {producto?.foto_principal ? "Haz clic para cambiar la foto" : "Sin foto asignada"}
+                                        {producto?.fotos?.[0]?.url ? "Haz clic para cambiar la foto" : "Sin foto asignada"}
                                     </p>
                                 </div>
                                 <button
