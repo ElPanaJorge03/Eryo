@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
     Plus, Trash2, Upload, ImageOff, Eye, EyeOff,
-    Loader2, X, CheckCircle, Edit3
+    Loader2, X, CheckCircle, Edit3, ChevronLeft, ChevronRight, Search
 } from "lucide-react";
 import { useProductosAdmin, useEliminarProducto, useCategorias } from "@/lib/hooks";
 import { uploadMultipleToCloudinary } from "@/lib/cloudinary";
@@ -270,6 +270,53 @@ export default function AdminProductosPage() {
     const { data: categorias } = useCategorias();
     const eliminar = useEliminarProducto();
     const [fotoManager, setFotoManager] = useState<ProductoResumen | null>(null);
+    const [busqueda, setBusqueda] = useState("");
+    const [filtroTipo, setFiltroTipo] = useState<string>("");
+    const [filtroCategoria, setFiltroCategoria] = useState<string>("");
+    const [paginaActual, setPaginaActual] = useState(1);
+    const ITEMS_POR_PAGINA = 15;
+
+    // Filtrar y buscar productos
+    const productosFiltrados = useMemo(() => {
+        if (!productos) return [];
+        return productos.filter((p) => {
+            const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase());
+            const coincideTipo = !filtroTipo || p.tipo === filtroTipo;
+            const coincideCategoria = !filtroCategoria || p.categoria_id?.toString() === filtroCategoria;
+            return coincideBusqueda && coincideTipo && coincideCategoria;
+        });
+    }, [productos, busqueda, filtroTipo, filtroCategoria]);
+
+    // Calcular paginación
+    const totalPaginas = Math.ceil(productosFiltrados.length / ITEMS_POR_PAGINA);
+    const indiceInicio = (paginaActual - 1) * ITEMS_POR_PAGINA;
+    const productosPagina = productosFiltrados.slice(indiceInicio, indiceInicio + ITEMS_POR_PAGINA);
+
+    // Obtener lista de tipos únicos
+    const tipos = useMemo(() => {
+        if (!productos) return [];
+        return Array.from(new Set(productos.map((p) => p.tipo))).sort();
+    }, [productos]);
+
+    // Resetear a página 1 cuando cambian los filtros
+    const handleFiltroChange = () => {
+        setPaginaActual(1);
+    };
+
+    function handleBusquedaChange(e: React.ChangeEvent<HTMLInputElement>) {
+        setBusqueda(e.target.value);
+        handleFiltroChange();
+    }
+
+    function handleFiltroTipoChange(e: React.ChangeEvent<HTMLSelectElement>) {
+        setFiltroTipo(e.target.value);
+        handleFiltroChange();
+    }
+
+    function handleFiltroCategoriaChange(e: React.ChangeEvent<HTMLSelectElement>) {
+        setFiltroCategoria(e.target.value);
+        handleFiltroChange();
+    }
 
     async function toggleActivo(p: ProductoResumen) {
         try {
@@ -304,7 +351,7 @@ export default function AdminProductosPage() {
                 <div>
                     <h1 className="section-title">Productos</h1>
                     <p className="section-subtitle">
-                        {isLoading ? "Cargando…" : `${productos?.length ?? 0} productos en total`}
+                        {isLoading ? "Cargando…" : `${productosFiltrados.length} de ${productos?.length ?? 0} productos`}
                     </p>
                 </div>
                 <Link href="/admin/productos/nuevo" className="btn btn-primary">
@@ -313,6 +360,72 @@ export default function AdminProductosPage() {
                 </Link>
             </div>
 
+            {!isLoading && (
+                <div className="card mb-6 p-4 space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-3 items-end">
+                        <div className="flex-1 min-w-64">
+                            <label className="input-label block mb-2">Buscar</label>
+                            <div className="relative">
+                                <Search size={16} className="absolute left-3 top-3" style={{ color: "rgba(220,202,233,0.4)" }} />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por nombre..."
+                                    value={busqueda}
+                                    onChange={handleBusquedaChange}
+                                    className="input input-bordered w-full pl-10"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="min-w-48">
+                            <label className="input-label block mb-2">Tipo</label>
+                            <select
+                                value={filtroTipo}
+                                onChange={handleFiltroTipoChange}
+                                className="select select-bordered w-full"
+                            >
+                                <option value="">Todos los tipos</option>
+                                {tipos.map((tipo) => (
+                                    <option key={tipo} value={tipo}>
+                                        {tipo}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="min-w-48">
+                            <label className="input-label block mb-2">Categoría</label>
+                            <select
+                                value={filtroCategoria}
+                                onChange={handleFiltroCategoriaChange}
+                                className="select select-bordered w-full"
+                            >
+                                <option value="">Todas las categorías</option>
+                                {categorias?.map((cat) => (
+                                    <option key={cat.id} value={cat.id.toString()}>
+                                        {cat.nombre}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {(busqueda || filtroTipo || filtroCategoria) && (
+                            <button
+                                onClick={() => {
+                                    setBusqueda("");
+                                    setFiltroTipo("");
+                                    setFiltroCategoria("");
+                                    setPaginaActual(1);
+                                }}
+                                className="btn btn-secondary btn-sm"
+                            >
+                                Limpiar filtros
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {isLoading ? (
                 <div className="flex flex-col gap-3">
                     {[1, 2, 3].map((i) => (
@@ -320,138 +433,175 @@ export default function AdminProductosPage() {
                     ))}
                 </div>
             ) : (
-                <div className="card overflow-x-auto">
-                    <table className="w-full text-sm min-w-max">
-                        <thead>
-                            <tr style={{ borderBottom: "1px solid rgba(114,76,157,0.2)" }}>
-                                {["Foto", "Nombre", "Tipo", "Categoría", "Precio", "Stock", "Estado", "Acciones"].map((h) => (
-                                    <th
-                                        key={h}
-                                        className="text-left px-4 py-3 font-semibold"
-                                        style={{ color: "rgba(220,202,233,0.5)", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em" }}
-                                    >
-                                        {h}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {productos?.map((p) => (
-                                <tr
-                                    key={p.id}
-                                    style={{ borderBottom: "1px solid rgba(114,76,157,0.1)" }}
-                                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(44,27,71,0.3)")}
-                                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                                >
-                                    {/* Foto miniatura */}
-                                    <td className="px-4 py-3">
-                                        <button
-                                            onClick={() => setFotoManager(p)}
-                                            className="relative w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
-                                            style={{ background: "rgba(44,27,71,0.6)", border: "1px solid rgba(114,76,157,0.3)" }}
-                                            title="Gestionar fotos"
-                                            aria-label={`Fotos de ${p.nombre}`}
+                <>
+                    <div className="card overflow-x-auto">
+                        <table className="w-full text-sm min-w-max">
+                            <thead>
+                                <tr style={{ borderBottom: "1px solid rgba(114,76,157,0.2)" }}>
+                                    {["Foto", "Nombre", "Tipo", "Categoría", "Precio", "Stock", "Estado", "Acciones"].map((h) => (
+                                        <th
+                                            key={h}
+                                            className="text-left px-4 py-3 font-semibold"
+                                            style={{ color: "rgba(220,202,233,0.5)", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em" }}
                                         >
-                                            {p.foto_principal ? (
-                                                <Image src={p.foto_principal} alt={p.nombre} fill className="object-cover" sizes="48px" />
-                                            ) : (
-                                                <ImageOff size={16} style={{ color: "rgba(220,202,233,0.25)" }} />
-                                            )}
-                                        </button>
-                                    </td>
-
-                                    <td className="px-4 py-3 font-medium" style={{ color: "#DCCAE9", maxWidth: "200px" }}>
-                                        <span className="line-clamp-1">{p.nombre}</span>
-                                    </td>
-
-                                    <td className="px-4 py-3" style={{ color: "rgba(220,202,233,0.6)" }}>
-                                        {p.tipo}
-                                    </td>
-
-                                    <td className="px-4 py-3" style={{ color: "rgba(220,202,233,0.5)" }}>
-                                        {p.categoria_id != null
-                                            ? categorias?.find((c) => c.id === p.categoria_id)?.nombre ?? "—"
-                                            : "—"}
-                                    </td>
-
-                                    <td className="px-4 py-3 font-semibold" style={{ color: "#9356A0" }}>
-                                        {formatPrice(p.precio)}
-                                    </td>
-
-                                    <td className="px-4 py-3">
-                                        <span
-                                            style={{
-                                                color: p.stock === 0 ? "#f87171" : p.stock <= 3 ? "#fbbf24" : "#34d399",
-                                                fontWeight: 600,
-                                            }}
-                                        >
-                                            {p.stock}
-                                        </span>
-                                    </td>
-
-                                    <td className="px-4 py-3">
-                                        <span className={p.activo ? "badge badge-active" : "badge badge-cancelled"}>
-                                            {p.activo ? "Activo" : "Inactivo"}
-                                        </span>
-                                    </td>
-
-                                    {/* Acciones */}
-                                    <td className="px-4 py-3">
-                                        <div className="flex items-center gap-1">
-                                            {/* Editar Información */}
-                                            <Link
-                                                href={`/admin/productos/${p.id}`}
-                                                className="btn btn-ghost btn-sm p-2"
-                                                title="Editar producto"
-                                                aria-label="Editar producto"
-                                            >
-                                                <Edit3 size={15} style={{ color: "#DCCAE9" }} />
-                                            </Link>
-
-                                            {/* Fotos */}
-                                            <button
-                                                onClick={() => setFotoManager(p)}
-                                                className="btn btn-ghost btn-sm p-2"
-                                                title="Gestionar fotos"
-                                                aria-label="Gestionar fotos"
-                                            >
-                                                <Upload size={15} />
-                                            </button>
-
-                                            {/* Activar/Desactivar */}
-                                            <button
-                                                onClick={() => toggleActivo(p)}
-                                                className="btn btn-ghost btn-sm p-2"
-                                                title={p.activo ? "Desactivar" : "Activar"}
-                                                aria-label={p.activo ? "Desactivar producto" : "Activar producto"}
-                                            >
-                                                {p.activo
-                                                    ? <EyeOff size={15} style={{ color: "#fbbf24" }} />
-                                                    : <Eye size={15} style={{ color: "#34d399" }} />}
-                                            </button>
-
-                                            {/* Eliminar */}
-                                            <button
-                                                onClick={() => confirmarEliminar(p)}
-                                                className="btn btn-ghost btn-sm p-2"
-                                                title="Eliminar producto"
-                                                aria-label="Eliminar producto"
-                                            >
-                                                <Trash2 size={15} style={{ color: "#f87171" }} />
-                                            </button>
-                                        </div>
-                                    </td>
+                                            {h}
+                                        </th>
+                                    ))}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {productosPagina.length > 0 ? (
+                                    productosPagina.map((p) => (
+                                        <tr
+                                            key={p.id}
+                                            style={{ borderBottom: "1px solid rgba(114,76,157,0.1)" }}
+                                            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(44,27,71,0.3)")}
+                                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                                        >
+                                            {/* Foto miniatura */}
+                                            <td className="px-4 py-3">
+                                                <button
+                                                    onClick={() => setFotoManager(p)}
+                                                    className="relative w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
+                                                    style={{ background: "rgba(44,27,71,0.6)", border: "1px solid rgba(114,76,157,0.3)" }}
+                                                    title="Gestionar fotos"
+                                                    aria-label={`Fotos de ${p.nombre}`}
+                                                >
+                                                    {p.foto_principal ? (
+                                                        <Image src={p.foto_principal} alt={p.nombre} fill className="object-cover" sizes="48px" />
+                                                    ) : (
+                                                        <ImageOff size={16} style={{ color: "rgba(220,202,233,0.25)" }} />
+                                                    )}
+                                                </button>
+                                            </td>
 
-                    {productos?.length === 0 && (
-                        <div className="text-center py-16" style={{ color: "rgba(220,202,233,0.4)" }}>
-                            No hay productos. Crea el primero.
+                                            <td className="px-4 py-3 font-medium" style={{ color: "#DCCAE9", maxWidth: "200px" }}>
+                                                <span className="line-clamp-1">{p.nombre}</span>
+                                            </td>
+
+                                            <td className="px-4 py-3" style={{ color: "rgba(220,202,233,0.6)" }}>
+                                                {p.tipo}
+                                            </td>
+
+                                            <td className="px-4 py-3" style={{ color: "rgba(220,202,233,0.5)" }}>
+                                                {p.categoria_id != null
+                                                    ? categorias?.find((c) => c.id === p.categoria_id)?.nombre ?? "—"
+                                                    : "—"}
+                                            </td>
+
+                                            <td className="px-4 py-3 font-semibold" style={{ color: "#9356A0" }}>
+                                                {formatPrice(p.precio)}
+                                            </td>
+
+                                            <td className="px-4 py-3">
+                                                <span
+                                                    style={{
+                                                        color: p.stock === 0 ? "#f87171" : p.stock <= 3 ? "#fbbf24" : "#34d399",
+                                                        fontWeight: 600,
+                                                    }}
+                                                >
+                                                    {p.stock}
+                                                </span>
+                                            </td>
+
+                                            <td className="px-4 py-3">
+                                                <span className={p.activo ? "badge badge-active" : "badge badge-cancelled"}>
+                                                    {p.activo ? "Activo" : "Inactivo"}
+                                                </span>
+                                            </td>
+
+                                            {/* Acciones */}
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-1">
+                                                    {/* Editar Información */}
+                                                    <Link
+                                                        href={`/admin/productos/${p.id}`}
+                                                        className="btn btn-ghost btn-sm p-2"
+                                                        title="Editar producto"
+                                                        aria-label="Editar producto"
+                                                    >
+                                                        <Edit3 size={15} style={{ color: "#DCCAE9" }} />
+                                                    </Link>
+
+                                                    {/* Fotos */}
+                                                    <button
+                                                        onClick={() => setFotoManager(p)}
+                                                        className="btn btn-ghost btn-sm p-2"
+                                                        title="Gestionar fotos"
+                                                        aria-label="Gestionar fotos"
+                                                    >
+                                                        <Upload size={15} />
+                                                    </button>
+
+                                                    {/* Activar/Desactivar */}
+                                                    <button
+                                                        onClick={() => toggleActivo(p)}
+                                                        className="btn btn-ghost btn-sm p-2"
+                                                        title={p.activo ? "Desactivar" : "Activar"}
+                                                        aria-label={p.activo ? "Desactivar producto" : "Activar producto"}
+                                                    >
+                                                        {p.activo
+                                                            ? <EyeOff size={15} style={{ color: "#fbbf24" }} />
+                                                            : <Eye size={15} style={{ color: "#34d399" }} />}
+                                                    </button>
+
+                                                    {/* Eliminar */}
+                                                    <button
+                                                        onClick={() => confirmarEliminar(p)}
+                                                        className="btn btn-ghost btn-sm p-2"
+                                                        title="Eliminar producto"
+                                                        aria-label="Eliminar producto"
+                                                    >
+                                                        <Trash2 size={15} style={{ color: "#f87171" }} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={8} className="text-center py-8" style={{ color: "rgba(220,202,233,0.4)" }}>
+                                            {productos?.length === 0 ? "No hay productos. Crea el primero." : "No hay productos que coincidan con los filtros."}
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {totalPaginas > 1 && (
+                        <div className="flex items-center justify-between mt-6 px-4 py-3">
+                            <div style={{ color: "rgba(220,202,233,0.6)", fontSize: "0.875rem" }}>
+                                Página {paginaActual} de {totalPaginas} ({productosFiltrados.length} resultados)
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setPaginaActual((p) => Math.max(1, p - 1))}
+                                    disabled={paginaActual === 1}
+                                    className="btn btn-sm btn-ghost"
+                                >
+                                    <ChevronLeft size={16} />
+                                </button>
+                                {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((num) => (
+                                    <button
+                                        key={num}
+                                        onClick={() => setPaginaActual(num)}
+                                        className={`btn btn-sm ${paginaActual === num ? "btn-primary" : "btn-ghost"}`}
+                                    >
+                                        {num}
+                                    </button>
+                                ))}
+                                <button
+                                    onClick={() => setPaginaActual((p) => Math.min(totalPaginas, p + 1))}
+                                    disabled={paginaActual === totalPaginas}
+                                    className="btn btn-sm btn-ghost"
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
                         </div>
                     )}
-                </div>
+                </>
             )}
         </>
     );
