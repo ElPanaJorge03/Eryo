@@ -10,6 +10,7 @@ import {
 import { useProductosAdmin, useEliminarProducto, useCategorias } from "@/lib/hooks";
 import { uploadMultipleToCloudinary } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/utils";
+import { Select } from "@/components/Select";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import type { ProductoResumen } from "@/lib/types";
@@ -308,16 +309,6 @@ export default function AdminProductosPage() {
         handleFiltroChange();
     }
 
-    function handleFiltroTipoChange(e: React.ChangeEvent<HTMLSelectElement>) {
-        setFiltroTipo(e.target.value);
-        handleFiltroChange();
-    }
-
-    function handleFiltroCategoriaChange(e: React.ChangeEvent<HTMLSelectElement>) {
-        setFiltroCategoria(e.target.value);
-        handleFiltroChange();
-    }
-
     async function toggleActivo(p: ProductoResumen) {
         try {
             await api.put(`/api/productos/${p.id}`, { activo: !p.activo });
@@ -377,36 +368,38 @@ export default function AdminProductosPage() {
                             </div>
                         </div>
 
-                        <div className="min-w-48">
+                        <div className="min-w-64">
                             <label className="input-label block mb-2">Tipo</label>
-                            <select
+                            <Select
                                 value={filtroTipo}
-                                onChange={handleFiltroTipoChange}
-                                className="select select-bordered w-full"
-                            >
-                                <option value="">Todos los tipos</option>
-                                {tipos.map((tipo) => (
-                                    <option key={tipo} value={tipo}>
-                                        {tipo}
-                                    </option>
-                                ))}
-                            </select>
+                                onChange={(val) => {
+                                    setFiltroTipo(val as string);
+                                    handleFiltroChange();
+                                }}
+                                options={[
+                                    { value: "", label: "Todos los tipos" },
+                                    ...tipos.map((tipo) => ({ value: tipo, label: tipo })),
+                                ]}
+                                placeholder="Seleccionar tipo"
+                                minWidth={256}
+                            />
                         </div>
 
-                        <div className="min-w-48">
+                        <div className="min-w-72">
                             <label className="input-label block mb-2">Categoría</label>
-                            <select
+                            <Select
                                 value={filtroCategoria}
-                                onChange={handleFiltroCategoriaChange}
-                                className="select select-bordered w-full"
-                            >
-                                <option value="">Todas las categorías</option>
-                                {categorias?.map((cat) => (
-                                    <option key={cat.id} value={cat.id.toString()}>
-                                        {cat.nombre}
-                                    </option>
-                                ))}
-                            </select>
+                                onChange={(val) => {
+                                    setFiltroCategoria(val as string);
+                                    handleFiltroChange();
+                                }}
+                                options={[
+                                    { value: "", label: "Todas las categorías" },
+                                    ...(categorias?.map((cat) => ({ value: cat.id.toString(), label: cat.nombre })) ?? []),
+                                ]}
+                                placeholder="Seleccionar categoría"
+                                minWidth={288}
+                            />
                         </div>
 
                         {(busqueda || filtroTipo || filtroCategoria) && (
