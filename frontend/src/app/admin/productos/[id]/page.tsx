@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Upload, ImageOff, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useProducto, useCategorias } from "@/lib/hooks";
+import { uploadMultipleToCloudinary } from "@/lib/cloudinary";
 
 export default function EditarProductoPage() {
     const router = useRouter();
@@ -18,7 +20,10 @@ export default function EditarProductoPage() {
     // Obtener los datos actuales del producto
     const { data: producto, isLoading: isLoadingProduct, isError } = useProducto(productId);
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [loading, setLoading] = useState(false);
+    const [uploadingFoto, setUploadingFoto] = useState(false);
+    const [fotoPreview, setFotoPreview] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         nombre: "",
         descripcion: "",
@@ -60,6 +65,60 @@ export default function EditarProductoPage() {
             setFormData((prev) => ({ ...prev, [name]: checked }));
         } else {
             setFormData((prev) => ({ ...prev, [name]: value }));
+        }
+    }
+
+    function onFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const previewUrl = URL.createObjectURL(file);
+        setFotoPreview(previewUrl);
+        e.target.value = "";
+    }
+
+    function cancelarFotoPreview() {
+        if (fotoPreview) {
+            URL.revokeObjectURL(fotoPreview);
+        }
+        setFotoPreview(null);
+    }
+
+    async function cambiarFotoPrincipal() {
+        if (!fotoPreview) return;
+
+        // Obtener el archivo del preview
+        const fileInput = fileInputRef.current;
+        if (!fileInput?.files?.[0]) return;
+
+        const file = fileInput.files[0];
+        setUploadingFoto(true);
+
+        try {
+            // 1. Subir a Cloudinary
+            const results = await uploadMultipleToCloudinary([file]);
+            const { secure_url, public_id } = results[0];
+
+            // 2. Actualizar foto_principal en el backend
+            await api.put(`/api/productos/${productId}`, {
+                foto_principal: secure_url,
+                foto_principal_public_id: public_id,
+            });
+
+            toast.success("Foto principal actualizada");
+
+            // 3. Refrescar caché
+            qc.invalidateQueries({ queryKey: ["productos-admin"] });
+            qc.invalidateQueries({ queryKey: ["productos"] });
+            qc.invalidateQueries({ queryKey: ["producto", productId] });
+
+            // 4. Limpiar preview
+            cancelarFotoPreview();
+        } catch (err: any) {
+            console.error(err);
+            toast.error(err?.message ?? "Error al cambiar la foto");
+        } finally {
+            setUploadingFoto(false);
         }
     }
 
@@ -142,6 +201,104 @@ export default function EditarProductoPage() {
                 <div>
                     <h1 className="section-title text-xl mb-1">Editar producto</h1>
                     <p className="section-subtitle text-xs">Modifica la información general de la pieza.</p>
+                </div>
+            </div>
+
+            {/* Sección de Foto Principal */}
+            <div className="card p-6 md:p-8 mb-6">
+                <h2 className="text-sm font-semibold mb-4" style={{ color: "#DCCAE9" }}>Foto Principal</h2>
+
+                <div className="flex flex-col sm:flex-row gap-6">
+                    {/* Foto actual o preview */}
+                    <div className="flex-shrink-0">
+                        <div
+                            className="relative w-32 h-32 rounded-lg overflow-hidden flex items-center justify-center"
+                            style={{ background: "rgba(44,27,71,0.6)", border: "1px solid rgba(114,76,157,0.3)" }}
+                        >
+                            {fotoPreview ? (
+                                <img
+                                    src={fotoPreview}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : producto?.foto_principal ? (
+                                <Image
+                                    src={producto.foto_principal}
+                                    alt={producto.nombre}
+                                    fill
+                                    className="object-cover"
+                                    sizes="128px"
+                                />
+                            ) : (
+                                <ImageOff size={32} style={{ color: "rgba(220,202,233,0.25)" }} />
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Acciones */}
+                    <div className="flex-1 flex flex-col justify-center gap-4">
+                        {fotoPreview ? (
+                            <>
+                                <div>
+                                    <p className="text-xs" style={{ color: "rgba(220,202,233,0.6)" }}>
+                                        Nueva foto seleccionada
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={cambiarFotoPrincipal}
+                                        disabled={uploadingFoto}
+                                        className="btn btn-primary btn-sm"
+                                    >
+                                        {uploadingFoto ? (
+                                            <>
+                                                <Loader2 size={14} className="animate-spin" />
+                                                Subiendo…
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload size={14} />
+                                                Cambiar Foto
+                                            </>
+                                        )}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={cancelarFotoPreview}
+                                        disabled={uploadingFoto}
+                                        className="btn btn-ghost btn-sm"
+                                    >
+                                        <X size={14} />
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div>
+                                    <p className="text-xs" style={{ color: "rgba(220,202,233,0.6)" }}>
+                                        {producto?.foto_principal ? "Haz clic para cambiar la foto" : "Sin foto asignada"}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="btn btn-primary btn-sm w-fit"
+                                >
+                                    <Upload size={14} />
+                                    Seleccionar Foto
+                                </button>
+                            </>
+                        )}
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            onChange={onFotoChange}
+                        />
+                    </div>
                 </div>
             </div>
 
