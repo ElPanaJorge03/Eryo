@@ -26,7 +26,7 @@ def listar_productos(
     tipo: str | None = None,
     busqueda: str | None = None,
     skip: int = Query(default=0, ge=0),
-    limit: int = Query(default=20, ge=1, le=100),
+    limit: int = Query(default=100, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
     """
