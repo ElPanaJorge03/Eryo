@@ -35,7 +35,7 @@ export default function CatalogoPage() {
         categoria_id: categoriaId,
         tipo,
         busqueda: busqueda || undefined,
-        limit: hayFiltros ? undefined : 100,
+        limit: hayFiltros ? undefined : 1000,
     });
 
     const limpiarFiltros = () => {

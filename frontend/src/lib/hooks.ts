@@ -155,7 +155,7 @@ export function useCrearPedidoPersonalizado() {
 export function useProductosAdmin() {
     return useQuery<ProductoResumen[]>({
         queryKey: ["productos-admin"],
-        queryFn: () => api.get("/api/productos/admin/todos?limit=200").then((r) => r.data),
+        queryFn: () => api.get("/api/productos/admin/todos?limit=1000").then((r) => r.data),
     });
 }
 

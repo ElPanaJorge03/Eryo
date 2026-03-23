@@ -26,7 +26,7 @@ def listar_productos(
     tipo: str | None = None,
     busqueda: str | None = None,
     skip: int = Query(default=0, ge=0),
-    limit: int = Query(default=100, ge=1, le=100),
+    limit: int = Query(default=100, ge=1, le=1000),
     db: Session = Depends(get_db),
 ):
     """
@@ -77,7 +77,7 @@ def listar_productos(
 @router.get("/admin/todos", response_model=list[ProductoListResponse])
 def listar_productos_admin(
     skip: int = Query(default=0, ge=0),
-    limit: int = Query(default=50, ge=1, le=200),
+    limit: int = Query(default=50, ge=1, le=1000),
     db: Session = Depends(get_db),
     admin: Admin = Depends(get_current_admin),
 ):
